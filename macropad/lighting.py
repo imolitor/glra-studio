@@ -103,13 +103,16 @@ def write(reader, identity, value, expected, directory):
         reader.audit.record("lighting_ack", hex=ack.hex())
         result["ack_hex"] = ack.hex()
         after = read(reader)
-        if after != read(reader) or after != value:
+        # Animated modes retain per-mode HSV caches, inactive when color is zero.
+        retained_hsv = value[2] in (2, 4) and value[6] == 0 and after[:8] == value[:8]
+        if after != read(reader) or (after != value and not retained_hsv):
             raise ValueError("Lighting readback did not match. Further writes are paused.")
         if n != 65 or len(ack) != 64 or ack[:3] != b"\xaa\x0b\x01" or ack[5:16] != value:
             raise ValueError("Unexpected lighting acknowledgement.")
         _, after_tables = snapshot(reader)
         if after_tables != tables or reader.memory(19, 432) != rgb:
             raise ValueError("Assignments or RGB data changed unexpectedly.")
+        result["after"] = after.hex()
         result["verified"] = True
         storage.save(Path(directory) / f"{stamp}-lighting-result.json", result)
         return result

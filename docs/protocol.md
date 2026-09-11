@@ -120,3 +120,17 @@ were unchanged, and the original lighting was restored exactly. These samples de
 and value support, not exhaustive validation of every possible color. The
 RGB sliders convert to 8-bit HSV; quantization and physical LED rendering
 mean the emitted color need not exactly match a display's RGB color.
+
+### Switching back to multicolor animation
+
+Steady RGB sets the single-color flag (byte 6) to 1. Reusing that flag for
+Breathing or Rainbow wave produces a single-color animation. Selecting either
+animated mode now restores the original mode parameters, including color=0 and
+color-index=8, instead of carrying Steady settings across modes.
+
+The firmware caches HSV separately for each mode. With color=0, an animated
+mode can return cached HSV rather than the three requested HSV bytes. Readback
+must match twice and must exactly match all eight active/configuration bytes;
+only inactive HSV bytes may differ for multicolor modes 2 and 4. The actual
+returned payload is saved as the transaction result and used for Undo checks.
+Single-color writes still require an exact match of all eleven bytes.

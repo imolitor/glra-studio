@@ -105,3 +105,38 @@ class LightingTests(unittest.TestCase):
                 self.assertEqual(result, bytes(expected))
                 self.assertEqual(result[6], 0)
                 self.assertEqual(result[7], 8)
+
+    def test_inactive_hsv_retained_by_firmware_is_reported_truthfully(self):
+        with tempfile.TemporaryDirectory() as folder:
+            r = LightReader(folder)
+            r.light = lighting.for_rgb(lighting.DEFAULT, 4)
+            r.light = r.light[:6] + bytes([1, 255, 234, 93, 194])
+            before = r.light
+            original_write = r.write
+
+            def retaining_write(packet):
+                n = original_write(packet)
+                r.light = r.light[:8] + bytes([80, 120, 160])
+                return n
+
+            r.write = retaining_write
+            result = lighting.write(r, {}, lighting.DEFAULT, before.hex(), folder)
+            self.assertEqual(result["after"], r.light.hex())
+            self.assertEqual(r.light[:8], lighting.DEFAULT[:8])
+
+    def test_multicolor_verification_still_rejects_wrong_active_settings(self):
+        with tempfile.TemporaryDirectory() as folder:
+            r = LightReader(folder)
+            r.light = lighting.for_rgb(lighting.DEFAULT, 1, [64, 128, 112])
+            original_write = r.write
+
+            def incorrect_mode(packet):
+                n = original_write(packet)
+                bad = bytearray(r.light)
+                bad[6] = 1
+                r.light = bytes(bad)
+                return n
+
+            r.write = incorrect_mode
+            with self.assertRaises(RuntimeError):
+                lighting.write(r, {}, lighting.DEFAULT, r.light.hex(), folder)
