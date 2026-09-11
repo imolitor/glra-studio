@@ -95,6 +95,8 @@ class Controller(QObject):
 
     @Slot(bool)
     def setDarkMode(self, dark):
+        if self.dark_mode == dark:
+            return
         self.dark_mode = dark
         if self.settings is not None:
             self.settings.setValue("appearance/dark", dark)
