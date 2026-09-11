@@ -101,3 +101,22 @@ custom-color index of 0 to 255; send 255 to obtain exact readback.
 
 Every test preserved assignment and RGB memory and restored the original
 lighting afterward. The Lighting popup exposes these three colors in Steady mode.
+
+### Mixed-color test
+
+Additional Steady-mode tests accepted these RGB-to-HSV conversions with exact
+11-byte readback (HSV components use 0–255; conversion truncates fractional values):
+
+| Requested RGB | Written HSV | Test color |
+|---|---|---|
+| 255, 255, 0 | 42, 255, 255 | Yellow |
+| 0, 255, 255 | 127, 255, 255 | Cyan |
+| 160, 32, 240 | 196, 221, 240 | Violet |
+| 64, 128, 112 | 116, 127, 128 | Muted teal |
+| 255, 255, 255 | 0, 0, 255 | White |
+
+The user visually confirmed all five colors. Assignment windows and RGB memory
+were unchanged, and the original lighting was restored exactly. These samples demonstrate intermediate hue, saturation,
+and value support, not exhaustive validation of every possible color. A future
+RGB picker must convert to 8-bit HSV; quantization and physical LED rendering
+mean the emitted color need not exactly match a display's RGB color.
