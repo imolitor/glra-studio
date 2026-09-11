@@ -30,6 +30,7 @@ from .model import (
 )
 from .shortcuts import encode
 from .worker import DeviceWorker
+from . import lighting
 
 
 class Controller(QObject):
@@ -69,6 +70,10 @@ class Controller(QObject):
         self.related = []
         self.canUndo = False
         self.demoUndo = None
+        self.light_open = False
+        self.light_value = ""
+        self.light_undo = False
+        self.demo_light_undo = None
         self.worker = None
         self.directory = Path(QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation))
         self.flashTimer = QTimer(self)
@@ -113,6 +118,11 @@ class Controller(QObject):
     @Property("QVariantMap", notify=changed)
     def ui(self):
         return {
+            "lightOpen": self.light_open,
+            "lightValue": self.light_value,
+            "lightMode": bytes.fromhex(self.light_value)[2] if self.light_value else -1,
+            "lightUndo": self.light_undo,
+            "lightModes": [{"value": k, "name": v} for k, v in lighting.MODES.items()],
             "demo": self.demo,
             "connected": self.connected,
             "writable": self.writable,
@@ -302,6 +312,73 @@ class Controller(QObject):
             self.worker.submit("recover")
 
     @Slot()
+    def openLighting(self):
+        if (
+            not self.connected
+            or not self.writable
+            or self.busy
+            or self.calibrating
+            or self.recovery
+            or self.armed
+        ):
+            return
+        self.light_open = True
+        self.light_value = ""
+        self.error = ""
+        if self.demo:
+            self.light_value = lighting.DEFAULT.hex()
+        else:
+            self.busy = True
+            self.worker.submit("lighting_read")
+        self.changed.emit()
+
+    @Slot()
+    def closeLighting(self):
+        if not self.busy:
+            self.light_open = False
+            self.changed.emit()
+
+    @Slot(int)
+    def saveLighting(self, mode):
+        if (
+            not self.light_open
+            or not self.light_value
+            or not self.connected
+            or not self.writable
+            or self.busy
+            or self.recovery
+            or self.calibrating
+        ):
+            return
+        if self.demo:
+            self.demo_light_undo = self.light_value
+            self.light_value = lighting.for_mode(bytes.fromhex(self.light_value), mode).hex()
+            self.light_undo = True
+        else:
+            self.busy = True
+            self.worker.submit("lighting_save", mode, self.light_value)
+        self.changed.emit()
+
+    @Slot()
+    def undoLighting(self):
+        if (
+            not self.light_open
+            or not self.light_undo
+            or not self.connected
+            or not self.writable
+            or self.busy
+            or self.recovery
+        ):
+            return
+        if self.demo:
+            self.light_value = self.demo_light_undo
+            self.light_undo = False
+        else:
+            self.busy = True
+            self.worker.submit("lighting_restore")
+        self.changed.emit()
+
+    @Slot()
     def openBackups(self):
         self.directory.mkdir(parents=True, exist_ok=True)
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.directory)))
@@ -331,6 +408,8 @@ class Controller(QObject):
                 self.error = ""
                 self.message = "Connected. Press a key or operate a dial on your pad to begin."
         else:
+            self.light_value = ""
+            self.light_undo = False
             self.writable = False
             self.input_available = False
             self.related = state.get("related", [])
@@ -352,7 +431,8 @@ class Controller(QObject):
     @Slot(object)
     def on_input(self, event):
         if (
-            not self.connected
+            self.light_open
+            or not self.connected
             or not self.writable
             or self.recording
             or self.busy
@@ -404,6 +484,15 @@ class Controller(QObject):
         kind = result["kind"]
         if kind in ("saved", "undone", "recovered", "calibrated"):
             self.error = ""
+        if kind in ("lighting_loaded", "lighting_saved"):
+            self.light_value = result["value"]
+            self.light_undo = result["canUndo"]
+            self.error = ""
+            self.message = (
+                "Lighting loaded."
+                if kind == "lighting_loaded"
+                else "Lighting saved. Backup and readback verified."
+            )
         if kind == "writes_paused":
             self.writable = False
         if kind == "saved":

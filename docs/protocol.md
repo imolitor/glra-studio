@@ -71,3 +71,21 @@ Public manufacturer bundle inspected on 2026-09-11:
 - [Python HIDAPI binding](https://github.com/trezor/cython-hidapi)
 
 No manufacturer code bundle or personal device dump is included in this repository.
+
+## Lighting writes (tested firmware 100)
+
+HIDAPI packet: `00 06 0b 0b 00 00` followed by 11 lighting bytes and 48 zero bytes.
+The lighting payload is `type, reserved, mode, brightness, speed, direction,
+color, color-index, hue, saturation, value`. Preserve the bytes when restoring.
+The observed ACK is 64 bytes with prefix `aa 0b 01` and the written payload at
+bytes 5–15. Read command `06 0a` returns the 11-byte state at the same offset.
+
+Modes tested on the target are 0 (Off), 1 (Steady), 2 (Breathing) and the original
+4 (Rainbow wave). Mode 0 normalizes its payload to `01` followed by ten zeroes.
+The observed original state was `0100040403030008ffffff`; it also supplies the
+on-mode defaults when the current state is Off. This is not a generic model table.
+
+Each lighting write requires a private backup, matching ACK, two equal exact
+lighting readbacks, and unchanged assignment windows and RGB memory. Failures
+retain error records and pause further writes. No firmware or reset commands
+are used. Power-cycle persistence remains untested.

@@ -9,11 +9,8 @@ manufacturer configuration software is required.
 
 ![GLRA Studio in demo mode](docs/screenshot-light.png)
 
-<details><summary>Dark mode</summary>
-
 ![Dark mode](docs/screenshot-dark.png)
 
-</details>
 
 > **Early hardware-tested release.** Reading and individual assignments have
 > been tested on one G-LRA k16_n3 firmware variant. Other pads are detected as
@@ -27,6 +24,7 @@ manufacturer configuration software is required.
 - Records one keyboard key with optional Shift, Control, Option or Command modifiers.
 - Saves the old assignments **before** writing, then verifies the changed data.
 - Can undo the last successful save in the current device session.
+- Changes pad lighting in a popup: Off, Steady, Breathing, or Rainbow wave.
 - Guides you through verifying physical positions that have not yet been tested.
 
 When several controls have the same assignment, their input reports are identical.
@@ -113,6 +111,26 @@ temporary change; after a disconnect or interrupted test, reconnect and use
 **Restore test**. The app does not overwrite a value that changed externally.
 The top-left key and all three upper-dial actions were physically verified during
 development. The remaining positions require this check.
+
+## Pad lighting
+
+Open **Lighting** in the header, choose **Off**, **Steady**, **Breathing**, or
+**Rainbow wave**, then click **Apply**. **Undo** restores the previous lighting
+configuration in the current connection session. Closing the popup without
+applying leaves the pad unchanged.
+
+![Lighting popup in dark mode](docs/screenshot-lighting-dark.png)
+
+These four modes were tested on the supported firmware, with visual confirmation
+of Off, Steady and Breathing and restoration of the original Rainbow wave.
+Before changing a mode, the app backs up lighting, assignment windows and RGB
+memory. It verifies lighting readback and checks that assignments and RGB memory
+are unchanged. The firmware clears inactive parameters in Off mode; switching
+back on uses the tested default brightness and color settings. Undo restores
+the exact configuration from before the last change.
+
+Additional effects, brightness/color controls, and persistence across a power
+cycle have not been validated. They are not exposed in the popup yet.
 
 ## Compatibility
 

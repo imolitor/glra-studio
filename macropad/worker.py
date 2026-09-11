@@ -5,7 +5,7 @@ import time
 from contextlib import ExitStack
 from pathlib import Path
 from PySide6.QtCore import QThread, Signal
-from . import backend, storage
+from . import backend, storage, lighting
 from .protocol import Reader
 from .learn import decode, BOOT_DESCRIPTOR, EXTENDED_DESCRIPTOR
 from .model import VISIBLE_SLOTS, HARDWARE_VERIFIED
@@ -32,6 +32,7 @@ class DeviceWorker(QThread):
         self.calibration = None
         self.pending = self.directory / "pending-calibration.json"
         self.verified = set(HARDWARE_VERIFIED)
+        self.light_undo = None
         self.undo = None
         self.write_blocked = False
 
@@ -45,6 +46,7 @@ class DeviceWorker(QThread):
         self.reader = None
         self.monitors = []
         self.identity = None
+        self.light_undo = None
         self.undo = None
 
     def publish(self):
@@ -183,10 +185,51 @@ class DeviceWorker(QThread):
             return
         if self.pending.exists():
             raise ValueError("Finish or restore the pending control test first.")
-        if self.write_blocked and command in ("save", "undo", "calibrate"):
+        if self.write_blocked and command in (
+            "save",
+            "undo",
+            "calibrate",
+            "lighting_save",
+            "lighting_restore",
+        ):
             raise ValueError(
                 "Writing was paused after an error. Review the backup and restart the app."
             )
+        if command == "lighting_read":
+            validate_status(self.reader.status())
+            value = lighting.read(self.reader)
+            self.completed.emit(
+                {
+                    "kind": "lighting_loaded",
+                    "value": value.hex(),
+                    "canUndo": self.light_undo is not None,
+                }
+            )
+            return
+        if command in ("lighting_save", "lighting_restore"):
+            if command == "lighting_restore":
+                if not self.light_undo:
+                    raise ValueError("No lighting change to undo in this session.")
+                old, expected = self.light_undo
+                value = bytes.fromhex(old)
+            else:
+                mode, expected = args
+                value = lighting.for_mode(bytes.fromhex(expected), mode)
+            result = lighting.write(
+                self.reader, self.identity, value, expected, self.directory / "backups"
+            )
+            if command == "lighting_restore":
+                self.light_undo = None
+            elif not result.get("unchanged"):
+                self.light_undo = (result["before"], result["after"])
+            self.completed.emit(
+                {
+                    "kind": "lighting_saved",
+                    "value": result["after"],
+                    "canUndo": self.light_undo is not None,
+                }
+            )
+            return
         if command == "save":
             slot, value, expected = args
             if slot not in self.verified:
@@ -273,7 +316,13 @@ class DeviceWorker(QThread):
                     try:
                         self.handle(command, args)
                     except Exception as exc:
-                        if command in ("save", "undo", "calibrate"):
+                        if command in (
+                            "save",
+                            "undo",
+                            "calibrate",
+                            "lighting_save",
+                            "lighting_restore",
+                        ):
                             self.write_blocked = True
                             self.completed.emit({"kind": "writes_paused"})
                         self.audit.record("operation_error", message=str(exc))

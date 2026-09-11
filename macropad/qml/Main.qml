@@ -37,6 +37,7 @@ ApplicationWindow {
                 implicitWidth: connectionLabel.implicitWidth+34; implicitHeight: 31; radius: 15; color: root.dark ? "#25364a" : "#eaf0f8"
                 Text { id: connectionLabel; anchors.centerIn: parent; text: root.data.demo ? "DEMO MODE" : root.data.connected ? "●  PAD CONNECTED" : "○  WAITING FOR PAD"; font.pixelSize: 10; font.weight: Font.DemiBold; font.letterSpacing: .8; color: root.data.demo ? root.muted : root.data.connected ? (root.dark ? "#7be0ba" : "#218363") : root.muted }
             }
+            StudioButton { objectName: "lightingButton"; text: "Lighting"; dark: root.dark; enabled: root.data.connected && root.data.writable && !root.data.busy && !root.data.calibrating && !root.data.recovery && !root.data.armed; onClicked: studio.openLighting() }
             StudioButton { text: root.dark ? "Light mode" : "Dark mode"; dark: root.dark; onClicked: root.dark=!root.dark }
             StudioButton { text: "Help"; dark: root.dark; implicitWidth: 66; onClicked: studio.openHelp() }
         }
@@ -162,6 +163,41 @@ ApplicationWindow {
                 Text { id: notice; Layout.fillWidth: true; text: root.data.error || root.data.message; color: root.ink; font.pixelSize: 12; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText }
                 StudioButton { visible: root.data.recovery || root.data.calibrating; text: "Restore test"; dark: root.dark; enabled: !root.data.busy; onClicked: studio.recover() }
                 StudioButton { text: "Backups"; dark: root.dark; implicitHeight: 32; implicitWidth: 83; onClicked: studio.openBackups() }
+            }
+        }
+    }
+    Dialog {
+        id: lightingDialog; objectName: "lightingDialog"; parent: Overlay.overlay
+        anchors.centerIn: parent; width: 450; modal: true; title: "Pad lighting"
+        property string loadedValue: ""
+        function syncMode() {
+            if (loadedValue !== root.data.lightValue) {
+                loadedValue = root.data.lightValue
+                lightMode.currentIndex = lightMode.indexOfValue(root.data.lightMode)
+            }
+        }
+        visible: root.data.lightOpen; closePolicy: Popup.NoAutoClose
+        Connections { target: studio; function onChanged() { lightingDialog.syncMode() } }
+        background: Rectangle { radius: 15; color: root.surface; border.color: root.line }
+        contentItem: ColumnLayout {
+            spacing: 18
+            Text { text: "Choose how your pad lights up."; color: root.ink; font.pixelSize: 16; font.weight: Font.DemiBold }
+            Text { text: "Changes apply only when you select Apply. Your current settings are backed up first."; color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            ComboBox {
+                id: lightMode; objectName: "lightingMode"; Layout.fillWidth: true
+                model: [{value: 0, name: "Off"}, {value: 1, name: "Steady"}, {value: 2, name: "Breathing"}, {value: 4, name: "Rainbow wave"}]
+                textRole: "name"; valueRole: "value"
+                currentIndex: -1
+                enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
+                palette.text: root.ink; palette.buttonText: root.ink; palette.base: root.surface; palette.button: root.surface
+            }
+            Text { text: root.data.error || (!root.data.connected ? "Reconnect your pad, then reopen Lighting." : root.data.busy ? "Working…" : root.data.lightValue ? "Current mode: " + root.data.lightModes.filter(function(m) { return m.value === root.data.lightMode })[0].name : "Reading lighting settings…"); color: root.data.error ? "#ce5f59" : root.muted; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true; font.pixelSize: 12 }
+            RowLayout {
+                Layout.fillWidth: true
+                StudioButton { objectName: "lightingUndo"; text: "Undo"; dark: root.dark; enabled: root.data.lightUndo && root.data.writable && !root.data.busy; onClicked: studio.undoLighting() }
+                Item { Layout.fillWidth: true }
+                StudioButton { text: "Close"; dark: root.dark; enabled: !root.data.busy; onClicked: studio.closeLighting() }
+                StudioButton { objectName: "lightingApply"; text: "Apply"; primary: true; dark: root.dark; enabled: root.data.lightValue !== "" && root.data.writable && !root.data.busy && lightMode.currentIndex >= 0 && lightMode.currentValue !== root.data.lightMode; onClicked: studio.saveLighting(lightMode.currentValue) }
             }
         }
     }
