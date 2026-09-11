@@ -129,8 +129,9 @@ are unchanged. The firmware clears inactive parameters in Off mode; switching
 back on uses the tested default brightness and color settings. Undo restores
 the exact configuration from before the last change.
 
-Additional effects, brightness/color controls, and persistence across a power
-cycle have not been validated. They are not exposed in the popup yet.
+Fixed red, green and blue in Steady mode have also passed hardware readback
+tests; color selection is not exposed in the popup yet. Additional effects,
+brightness controls, and persistence across a power cycle remain unvalidated.
 
 ## Compatibility
 

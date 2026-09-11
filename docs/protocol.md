@@ -89,3 +89,15 @@ Each lighting write requires a private backup, matching ACK, two equal exact
 lighting readbacks, and unchanged assignment windows and RGB memory. Failures
 retain error records and pause further writes. No firmware or reset commands
 are used. Power-cycle persistence remains untested.
+
+### Fixed colors in Steady mode
+
+Fixed red, green and blue were accepted and read back exactly in mode 1,
+with user confirmation of uniform steady colors on the physical pad.
+Set payload byte 6 (single-color flag) to 1, byte 7 (custom-color index) to
+255, and bytes 8–10 to HSV scaled to 0–255. Tested HSV triples were
+`00 ff ff`, `55 ff ff` and `aa ff ff`. The firmware changes an incoming
+custom-color index of 0 to 255; send 255 to obtain exact readback.
+
+Every test preserved assignment and RGB memory and restored the original
+lighting afterward. The GUI does not expose color selection yet.
