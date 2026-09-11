@@ -78,6 +78,7 @@ class Controller(QObject):
             "label": label(self.value(slot)) if self.connected else "—",
             "verified": slot in self.verified,
             "selected": slot == self.selected,
+            "awaitingVerification": self.calibrating and slot == self.selected,
             "active": slot == self.flash,
             "selectable": slot in self.candidates,
         }

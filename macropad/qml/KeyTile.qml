@@ -18,9 +18,9 @@ Button {
     ToolTip.text: entry.label + (entry.verified ? "" : " · verify before saving")
     background: Rectangle {
         radius: b.compact ? 9 : 12
-        color: entry.active ? "#cbf4e2" : entry.selected ? (b.dark ? "#213b68" : "#eaf0ff") : b.hovered ? (b.dark ? "#2b3a50" : "#f3f6fc") : (b.dark ? "#243042" : "#ffffff")
-        border.width: entry.selected ? 2 : 1
-        border.color: entry.selected ? "#4a7aff" : b.dark ? "#3a485c" : "#dce3ee"
+        color: entry.awaitingVerification ? (b.dark ? "#48301c" : "#fff3e4") : entry.active ? "#cbf4e2" : entry.selected ? (b.dark ? "#213b68" : "#eaf0ff") : b.hovered ? (b.dark ? "#2b3a50" : "#f3f6fc") : (b.dark ? "#243042" : "#ffffff")
+        border.width: entry.awaitingVerification ? 3 : entry.selected ? 2 : 1
+        border.color: entry.awaitingVerification ? (b.dark ? "#ffad4d" : "#e78216") : entry.selected ? "#4a7aff" : b.dark ? "#3a485c" : "#dce3ee"
         Behavior on color { ColorAnimation { duration: 160 } }
         Rectangle { visible: !b.compact; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 5; height: 3; radius: 2; color: b.dark ? "#172132" : "#e7ecf4" }
     }
