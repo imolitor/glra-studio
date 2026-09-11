@@ -4,12 +4,13 @@ Button {
     id: b
     property bool primary: false
     property bool dark: false
+    property int textSize: 13
     implicitHeight: 42
     implicitWidth: Math.max(80, label.implicitWidth + 28)
     focusPolicy: Qt.NoFocus
     hoverEnabled: true
     contentItem: Text {
-        id: label; text: b.text; font.pixelSize: 13; font.weight: Font.DemiBold
+        id: label; text: b.text; font.pixelSize: b.textSize; font.weight: Font.DemiBold
         color: !b.enabled ? "#95a1b3" : b.primary ? "white" : b.dark ? "#e8edf5" : "#253247"
         horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
     }

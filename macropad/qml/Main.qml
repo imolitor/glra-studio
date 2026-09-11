@@ -38,8 +38,19 @@ ApplicationWindow {
                 Text { id: connectionLabel; anchors.centerIn: parent; text: root.data.demo ? "DEMO MODE" : root.data.connected ? "●  PAD CONNECTED" : "○  WAITING FOR PAD"; font.pixelSize: 10; font.weight: Font.DemiBold; font.letterSpacing: .8; color: root.data.demo ? root.muted : root.data.connected ? (root.dark ? "#7be0ba" : "#218363") : root.muted }
             }
             StudioButton { objectName: "lightingButton"; text: "Lighting"; dark: root.dark; enabled: root.data.connected && root.data.writable && !root.data.busy && !root.data.calibrating && !root.data.recovery && !root.data.armed; onClicked: studio.openLighting() }
-            StudioButton { text: root.dark ? "Light mode" : "Dark mode"; dark: root.dark; onClicked: root.dark=!root.dark }
-            StudioButton { text: "Help"; dark: root.dark; implicitWidth: 66; onClicked: studio.openHelp() }
+            StudioButton {
+                id: themeButton; text: root.dark ? "☀" : "☾"; textSize: 23
+                dark: root.dark; implicitWidth: 42
+                Accessible.name: root.dark ? "Switch to light mode" : "Switch to dark mode"
+                ToolTip.visible: hovered; ToolTip.delay: 400; ToolTip.text: Accessible.name
+                onClicked: root.dark = !root.dark
+            }
+            StudioButton {
+                text: "?"; textSize: 20; dark: root.dark; implicitWidth: 42
+                Accessible.name: "Help"
+                ToolTip.visible: hovered; ToolTip.delay: 400; ToolTip.text: "Help"
+                onClicked: studio.openHelp()
+            }
         }
         RowLayout {
             Layout.fillWidth: true
