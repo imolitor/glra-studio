@@ -171,12 +171,18 @@ ApplicationWindow {
         anchors.centerIn: parent; width: 520; modal: true; title: "Pad lighting"
         property string loadedValue: ""
         property int draftMode: -1
-        property int draftColor: -1
+        property int red: 255
+        property int green: 255
+        property int blue: 255
+        property bool colorEdited: false
         function syncMode() {
             if (loadedValue !== root.data.lightValue) {
                 loadedValue = root.data.lightValue
                 draftMode = root.data.lightMode
-                draftColor = root.data.lightColor
+                red = root.data.lightRgb[0]
+                green = root.data.lightRgb[1]
+                blue = root.data.lightRgb[2]
+                colorEdited = false
             }
         }
         visible: root.data.lightOpen; closePolicy: Popup.NoAutoClose
@@ -204,33 +210,33 @@ ApplicationWindow {
                 visible: lightingDialog.draftMode === 1; Layout.fillWidth: true; spacing: 10
                 Text { text: "FIXED COLOR"; color: root.muted; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 1 }
                 RowLayout {
-                    Layout.fillWidth: true; spacing: 10
-                    Repeater {
-                        model: [{name: "Red", color: "#ef5b58"}, {name: "Green", color: "#45c98a"}, {name: "Blue", color: "#568bf5"}]
-                        Button {
-                            id: colorButton
-                            required property var modelData
-                            required property int index
-                            objectName: "lightingColor" + index
-                            Layout.fillWidth: true; implicitHeight: 64; focusPolicy: Qt.NoFocus
-                            enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
-                            Accessible.name: modelData.name
-                            onClicked: lightingDialog.draftColor = index
-                            background: Rectangle {
-                                radius: 10; color: root.surface
-                                border.width: lightingDialog.draftColor === colorButton.index ? 3 : 1
-                                border.color: lightingDialog.draftColor === colorButton.index ? colorButton.modelData.color : root.line
-                            }
-                            contentItem: Row {
-                                spacing: 8
-                                leftPadding: 14; topPadding: 17
-                                Rectangle { width: 18; height: 18; radius: 9; color: colorButton.modelData.color }
-                                Text { text: colorButton.modelData.name; color: root.ink; font.pixelSize: 13 }
+                    Layout.fillWidth: true; spacing: 18
+                    ColumnLayout {
+                        Layout.fillWidth: true; spacing: 6
+                        Repeater {
+                            model: [{name: "Red", channel: "red", tint: "#ef5b58"}, {name: "Green", channel: "green", tint: "#45c98a"}, {name: "Blue", channel: "blue", tint: "#568bf5"}]
+                            RowLayout {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                Text { text: modelData.name; color: modelData.tint; font.pixelSize: 12; Layout.preferredWidth: 42 }
+                                Slider {
+                                    objectName: "lightingSlider" + modelData.channel
+                                    Layout.fillWidth: true; from: 0; to: 255; stepSize: 1
+                                    value: lightingDialog[modelData.channel]
+                                    enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
+                                    Accessible.name: modelData.name
+                                    onMoved: { lightingDialog[modelData.channel] = Math.round(value); lightingDialog.colorEdited = true }
+                                }
+                                Text { text: lightingDialog[modelData.channel]; color: root.ink; font.pixelSize: 12; Layout.preferredWidth: 26; horizontalAlignment: Text.AlignRight }
                             }
                         }
                     }
+                    ColumnLayout {
+                        spacing: 8
+                        Rectangle { objectName: "lightingPreview"; Layout.preferredWidth: 96; Layout.preferredHeight: 96; radius: 12; border.color: root.line; color: Qt.rgba(lightingDialog.red / 255, lightingDialog.green / 255, lightingDialog.blue / 255, 1) }
+                        Text { text: "#" + [lightingDialog.red, lightingDialog.green, lightingDialog.blue].map(function(v) { return v.toString(16).padStart(2, "0") }).join("").toUpperCase(); color: root.muted; font.pixelSize: 12; Layout.alignment: Qt.AlignHCenter }
+                    }
                 }
-                Text { visible: lightingDialog.draftColor < 0; text: "Select a color, or keep the pad’s existing colors."; color: root.muted; font.pixelSize: 11 }
             }
             Text { text: root.data.error || (!root.data.connected ? "Reconnect your pad, then reopen Lighting." : root.data.busy ? "Working…" : root.data.lightValue ? "Current mode: " + root.data.lightModes.filter(function(m) { return m.value === root.data.lightMode })[0].name : "Reading lighting settings…"); color: root.data.error ? "#ce5f59" : root.muted; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true; font.pixelSize: 12 }
             RowLayout {
@@ -238,7 +244,7 @@ ApplicationWindow {
                 StudioButton { objectName: "lightingUndo"; text: "Undo"; dark: root.dark; enabled: root.data.lightUndo && root.data.writable && !root.data.busy; onClicked: studio.undoLighting() }
                 Item { Layout.fillWidth: true }
                 StudioButton { text: "Close"; dark: root.dark; enabled: !root.data.busy; onClicked: studio.closeLighting() }
-                StudioButton { objectName: "lightingApply"; text: "Apply"; primary: true; dark: root.dark; enabled: root.data.lightValue !== "" && root.data.writable && !root.data.busy && (lightingDialog.draftMode !== root.data.lightMode || (lightingDialog.draftMode === 1 && lightingDialog.draftColor >= 0 && lightingDialog.draftColor !== root.data.lightColor)); onClicked: studio.saveLighting(lightingDialog.draftMode, lightingDialog.draftColor) }
+                StudioButton { objectName: "lightingApply"; text: "Apply"; primary: true; dark: root.dark; enabled: root.data.lightValue !== "" && root.data.writable && !root.data.busy && (lightingDialog.draftMode !== root.data.lightMode || (lightingDialog.draftMode === 1 && lightingDialog.colorEdited)); onClicked: studio.saveLighting(lightingDialog.draftMode, lightingDialog.red, lightingDialog.green, lightingDialog.blue) }
             }
         }
     }

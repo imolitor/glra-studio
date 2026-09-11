@@ -213,8 +213,8 @@ class DeviceWorker(QThread):
                 old, expected = self.light_undo
                 value = bytes.fromhex(old)
             else:
-                mode, color, expected = args
-                value = lighting.for_selection(bytes.fromhex(expected), mode, color)
+                mode, rgb, expected = args
+                value = lighting.for_rgb(bytes.fromhex(expected), mode, rgb)
             result = lighting.write(
                 self.reader, self.identity, value, expected, self.directory / "backups"
             )

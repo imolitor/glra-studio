@@ -100,7 +100,7 @@ Set payload byte 6 (single-color flag) to 1, byte 7 (custom-color index) to
 custom-color index of 0 to 255; send 255 to obtain exact readback.
 
 Every test preserved assignment and RGB memory and restored the original
-lighting afterward. The Lighting popup exposes these three colors in Steady mode.
+lighting afterward. The Lighting popup supports RGB mixing in Steady mode.
 
 ### Mixed-color test
 
@@ -117,6 +117,6 @@ Additional Steady-mode tests accepted these RGB-to-HSV conversions with exact
 
 The user visually confirmed all five colors. Assignment windows and RGB memory
 were unchanged, and the original lighting was restored exactly. These samples demonstrate intermediate hue, saturation,
-and value support, not exhaustive validation of every possible color. A future
-RGB picker must convert to 8-bit HSV; quantization and physical LED rendering
+and value support, not exhaustive validation of every possible color. The
+RGB sliders convert to 8-bit HSV; quantization and physical LED rendering
 mean the emitted color need not exactly match a display's RGB color.

@@ -86,3 +86,11 @@ class LightingTests(unittest.TestCase):
 
     def test_color_choice_only_applies_in_steady(self):
         self.assertEqual(lighting.for_selection(lighting.DEFAULT, 4, 0), lighting.DEFAULT)
+
+    def test_rgb_mixture_and_invalid_channels(self):
+        value = lighting.for_rgb(lighting.DEFAULT, 1, [64, 128, 112])
+        self.assertEqual(value[6:11], bytes([1, 255, 116, 127, 128]))
+        self.assertEqual(len(lighting.rgb_value(value)), 3)
+        for rgb in ([256, 0, 0], [-1, 0, 0], [1, 2], [1.5, 0, 0]):
+            with self.assertRaises(ValueError):
+                lighting.for_rgb(lighting.DEFAULT, 1, rgb)

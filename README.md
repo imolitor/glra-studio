@@ -115,12 +115,13 @@ development. The remaining positions require this check.
 ## Pad lighting
 
 Open **Lighting** in the header and select a mode button: **Off**, **Steady**,
-**Breathing**, or **Rainbow wave**. In **Steady**, optional **Red**, **Green** and
-**Blue** buttons select a fixed color. Click **Apply** to save your selection. **Undo** restores the previous lighting
+**Breathing**, or **Rainbow wave**. In **Steady**, use the **Red**, **Green** and
+**Blue** sliders (0–255) to mix a fixed color. The preview updates immediately
+and shows its hex value. Click **Apply** to save it to the pad. **Undo** restores the previous lighting
 configuration in the current connection session. Closing the popup without
 applying leaves the pad unchanged.
 
-![Lighting popup in dark mode](docs/screenshot-lighting-dark.png)
+![RGB sliders and live color preview in dark mode](docs/screenshot-lighting-dark.png)
 
 These four modes were tested on the supported firmware, with visual confirmation
 of Off, Steady and Breathing and restoration of the original Rainbow wave.
@@ -130,8 +131,9 @@ are unchanged. The firmware clears inactive parameters in Off mode; switching
 back on uses the tested default brightness and color settings. Undo restores
 the exact configuration from before the last change.
 
-Fixed red, green and blue in Steady mode passed hardware readback tests and
-were visually confirmed on the pad. Additional effects,
+Primary and mixed colors in Steady mode passed hardware readback tests and
+were visually confirmed on the pad. RGB values are converted to the pad’s
+8-bit HSV format, so the values displayed after saving can differ slightly. Additional effects,
 brightness controls, and persistence across a power cycle remain unvalidated.
 
 ## Compatibility

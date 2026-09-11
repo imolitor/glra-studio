@@ -1,5 +1,6 @@
 """Tested lighting modes with private backups and exact readback checks."""
 
+import colorsys
 from datetime import datetime, timezone
 from pathlib import Path
 from . import storage
@@ -47,6 +48,22 @@ def for_selection(current, mode, color=-1):
     value = bytearray(for_mode(current, mode))
     if mode == 1 and color >= 0:
         value[6:11] = bytes([1, 255, (0, 85, 170)[color], 255, 255])
+    return bytes(value)
+
+
+def rgb_value(value):
+    validate(value)
+    return [round(v * 255) for v in colorsys.hsv_to_rgb(*(v / 255 for v in value[8:11]))]
+
+
+def for_rgb(current, mode, rgb=None):
+    value = bytearray(for_mode(current, mode))
+    if rgb is not None:
+        if len(rgb) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in rgb):
+            raise ValueError("RGB components must be integers from 0 to 255.")
+        if mode == 1:
+            hsv = [int(v * 255) for v in colorsys.rgb_to_hsv(*(v / 255 for v in rgb))]
+            value[6:11] = bytes([1, 255, *hsv])
     return bytes(value)
 
 
