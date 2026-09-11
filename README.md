@@ -22,7 +22,7 @@ manufacturer configuration software is required.
 ## What it does
 
 - Detects a connected pad and displays all 16 key assignments and nine dial actions.
-- Offers a light/dark interface and a completely offline demo mode.
+- Remembers your light/dark preference across launches and offers an offline demo mode.
 - Detects a pad press while the app is active and offers to change that control.
 - Records one keyboard key with optional Shift, Control, Option or Command modifiers.
 - Saves the old assignments **before** writing, then verifies the changed data.

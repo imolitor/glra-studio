@@ -4,7 +4,18 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from PySide6.QtCore import QObject, Property, Signal, Slot, QEvent, QTimer, QUrl, QStandardPaths, Qt
+from PySide6.QtCore import (
+    QObject,
+    Property,
+    Signal,
+    Slot,
+    QEvent,
+    QTimer,
+    QUrl,
+    QStandardPaths,
+    QSettings,
+    Qt,
+)
 from PySide6.QtGui import QGuiApplication, QDesktopServices
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -28,6 +39,10 @@ class Controller(QObject):
         super().__init__()
         self.app = app
         self.demo = demo
+        self.settings = None if demo else QSettings("glra-studio.local", "GLRA Studio")
+        self.dark_mode = (
+            self.settings.value("appearance/dark", False, type=bool) if self.settings else False
+        )
         self.connected = demo
         self.writable = demo
         self.table = demo_table() if demo else bytes(112)
@@ -68,6 +83,18 @@ class Controller(QObject):
             self.worker.fault.connect(self.on_fault)
             self.worker.busy.connect(self.on_busy)
             self.worker.start()
+
+    @Property(bool, notify=changed)
+    def darkMode(self):
+        return self.dark_mode
+
+    @Slot(bool)
+    def setDarkMode(self, dark):
+        self.dark_mode = dark
+        if self.settings is not None:
+            self.settings.setValue("appearance/dark", dark)
+            self.settings.sync()
+        self.changed.emit()
 
     def value(self, slot):
         return self.table[slot * 4 : slot * 4 + 4].hex()

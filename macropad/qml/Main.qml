@@ -5,7 +5,8 @@ ApplicationWindow {
     id: root
     width: 1260; height: 860; minimumWidth: 1110; minimumHeight: 840
     visible: true; title: "GLRA Studio"
-    property bool dark: false
+    property bool dark: studio.darkMode
+    onDarkChanged: studio.setDarkMode(dark)
     property var data: studio.ui
     property color ink: dark ? "#edf3fc" : "#1c2c44"
     property color muted: dark ? "#9eacc1" : "#6e7e94"
