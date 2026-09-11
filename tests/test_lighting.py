@@ -94,3 +94,14 @@ class LightingTests(unittest.TestCase):
         for rgb in ([256, 0, 0], [-1, 0, 0], [1, 2], [1.5, 0, 0]):
             with self.assertRaises(ValueError):
                 lighting.for_rgb(lighting.DEFAULT, 1, rgb)
+
+    def test_animated_modes_restore_original_multicolor_after_custom_rgb(self):
+        steady = lighting.for_rgb(lighting.DEFAULT, 1, [64, 128, 112])
+        for mode in (2, 4):
+            with self.subTest(mode=mode):
+                result = lighting.for_rgb(steady, mode, [64, 128, 112])
+                expected = bytearray(lighting.DEFAULT)
+                expected[2] = mode
+                self.assertEqual(result, bytes(expected))
+                self.assertEqual(result[6], 0)
+                self.assertEqual(result[7], 8)

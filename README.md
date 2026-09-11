@@ -117,7 +117,9 @@ development. The remaining positions require this check.
 Open **Lighting** in the header and select a mode button: **Off**, **Steady**,
 **Breathing**, or **Rainbow wave**. In **Steady**, use the **Red**, **Green** and
 **Blue** sliders (0–255) to mix a fixed color. The preview updates immediately
-and shows its hex value. Click **Apply** to save it to the pad. **Undo** restores the previous lighting
+and shows its hex value. Click **Apply** to save it to the pad.
+**Breathing** and **Rainbow wave** restore the tested original multicolor
+settings, even after a custom Steady color. **Undo** restores the previous lighting
 configuration in the current connection session. Closing the popup without
 applying leaves the pad unchanged.
 

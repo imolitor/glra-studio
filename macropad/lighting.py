@@ -30,7 +30,8 @@ def for_mode(current, mode):
         raise ValueError("Unknown lighting mode.")
     if mode == 0:
         return bytes([1]) + bytes(10)
-    value = bytearray(DEFAULT if current[2] == 0 else current)
+    # Animated modes use the original multicolor configuration, not Steady HSV.
+    value = bytearray(DEFAULT if mode in (2, 4) or current[2] == 0 else current)
     value[2] = mode
     return bytes(value)
 
