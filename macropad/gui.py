@@ -33,6 +33,9 @@ class Controller(QObject):
         self.table = demo_table() if demo else bytes(112)
         self.selected = 0
         self.pending = ""
+        self.armed = False
+        self.candidates = set()
+        self.save_after_verify = False
         self.recording = False
         self.busy = False
         self.confirm = False
@@ -40,7 +43,7 @@ class Controller(QObject):
         self.recovery = False
         self.verified = set(VISIBLE_SLOTS) if demo else set(HARDWARE_VERIFIED)
         self.message = (
-            "Explore the controls. Demo changes stay in memory."
+            "Demo preview. Physical pad input starts editing in the connected app."
             if demo
             else "Looking for your macropad…"
         )
@@ -76,6 +79,7 @@ class Controller(QObject):
             "verified": slot in self.verified,
             "selected": slot == self.selected,
             "active": slot == self.flash,
+            "selectable": slot in self.candidates,
         }
 
     @Property("QVariantMap", notify=changed)
@@ -111,11 +115,12 @@ class Controller(QObject):
             "profile": self.profile,
             "related": "; ".join(self.related),
             "canUndo": self.canUndo,
+            "armed": self.armed,
             "canSave": bool(
                 self.pending
+                and self.armed
                 and self.connected
                 and self.writable
-                and self.selected in self.verified
                 and not self.busy
                 and not self.recovery
                 and not self.calibrating
@@ -124,17 +129,28 @@ class Controller(QObject):
 
     @Slot(int)
     def select(self, slot):
-        if slot not in VISIBLE_SLOTS or self.busy or self.calibrating:
+        if slot not in self.candidates or self.busy or self.calibrating:
             return
         self.selected = slot
+        self.candidates.clear()
+        self.armed = True
+        self.confirm = True
         self.pending = ""
         self.recording = False
         self.error = ""
+        self.message = "Control selected. Would you like to change its assignment?"
         self.changed.emit()
 
     @Slot()
     def record(self):
-        if not self.connected or self.busy or self.calibrating or self.recovery:
+        if (
+            not self.armed
+            or not self.writable
+            or not self.connected
+            or self.busy
+            or self.calibrating
+            or self.recovery
+        ):
             return
         self.confirm = False
         self.recording = True
@@ -145,6 +161,9 @@ class Controller(QObject):
 
     @Slot()
     def cancel(self):
+        self.armed = False
+        self.candidates.clear()
+        self.save_after_verify = False
         self.confirm = False
         self.recording = False
         self.pending = ""
@@ -182,6 +201,10 @@ class Controller(QObject):
     def save(self):
         if not self.ui["canSave"]:
             return
+        if self.selected not in self.verified:
+            self.save_after_verify = True
+            self.verifyControl()
+            return
         if self.demo:
             old = self.value(self.selected)
             table = bytearray(self.table)
@@ -190,6 +213,7 @@ class Controller(QObject):
             self.table = bytes(table)
             self.pending = ""
             self.canUndo = True
+            self.armed = False
             self.message = "Demo assignment updated. No device was written."
             self.changed.emit()
         else:
@@ -222,7 +246,14 @@ class Controller(QObject):
 
     @Slot()
     def verifyControl(self):
-        if self.busy or not self.connected or self.recovery:
+        if (
+            not self.armed
+            or not self.pending
+            or not self.writable
+            or self.busy
+            or not self.connected
+            or self.recovery
+        ):
             return
         if self.demo:
             self.verified.add(self.selected)
@@ -237,6 +268,7 @@ class Controller(QObject):
     @Slot()
     def recover(self):
         if self.worker and not self.busy:
+            self.save_after_verify = False
             self.busy = True
             self.changed.emit()
             self.worker.submit("recover")
@@ -268,7 +300,8 @@ class Controller(QObject):
             self.verified = set(state["verified"])
             self.related = []
             if not was_connected:
-                self.message = "Connected. Press a control on your pad or select it below."
+                self.error = ""
+                self.message = "Connected. Press a key or operate a dial on your pad to begin."
         else:
             self.writable = False
             self.input_available = False
@@ -279,6 +312,9 @@ class Controller(QObject):
                     " · Detected: " + "; ".join(self.related) + " — not enabled for writing."
                 )
             self.pending = ""
+            self.armed = False
+            self.candidates.clear()
+            self.save_after_verify = False
             self.recording = False
             self.confirm = False
             self.canUndo = False
@@ -288,7 +324,9 @@ class Controller(QObject):
     @Slot(object)
     def on_input(self, event):
         if (
-            self.recording
+            not self.connected
+            or not self.writable
+            or self.recording
             or self.busy
             or self.calibrating
             or self.confirm
@@ -300,15 +338,24 @@ class Controller(QObject):
             return
         value = event.get("candidate_assignment_hex")
         candidates = [s for s in VISIBLE_SLOTS if self.value(s) == value]
+        self.candidates.clear()
         if len(candidates) == 1:
+            self.armed = True
             self.selected = candidates[0]
             self.flash = self.selected
             self.confirm = True
             self.message = "Control detected. Would you like to change its assignment?"
             self.flashTimer.start(650)
-        else:
+        elif candidates:
+            self.armed = False
+            self.candidates = set(candidates)
             self.message = (
-                "Several controls send this same shortcut. Select the physical control on the pad."
+                "Duplicate assignment: click the control you just operated in the diagram."
+            )
+        else:
+            self.armed = False
+            self.message = (
+                "This input does not match a displayed assignment. Reload the pad and retry."
             )
         self.changed.emit()
 
@@ -320,6 +367,7 @@ class Controller(QObject):
     @Slot(str)
     def on_fault(self, message):
         self.error = message
+        self.save_after_verify = False
         self.recording = False
         self.changed.emit()
 
@@ -331,6 +379,8 @@ class Controller(QObject):
         if kind == "writes_paused":
             self.writable = False
         if kind == "saved":
+            self.armed = False
+            self.save_after_verify = False
             self.pending = ""
             self.canUndo = not result["result"].get("unchanged", False)
             self.message = "Saved to your pad. Backup and readback verified."
@@ -346,15 +396,29 @@ class Controller(QObject):
             )
         elif kind == "calibrated":
             self.calibrating = False
-            self.message = "Physical control verified. Its original assignment has been restored."
+            self.message = "Physical control verified. Saving your new shortcut…"
+            if self.save_after_verify:
+                # Completion is queued before the worker's busy=False signal.
+                QTimer.singleShot(0, self.finish_verified_save)
         elif kind == "recovered":
+            self.save_after_verify = False
             self.calibrating = False
             self.recovery = False
             self.message = "Temporary assignment restored."
         elif kind == "recovery_needed":
+            self.save_after_verify = False
             self.calibrating = False
             self.recovery = True
         self.changed.emit()
+
+    def finish_verified_save(self):
+        if not self.save_after_verify:
+            return
+        if self.busy:
+            QTimer.singleShot(10, self.finish_verified_save)
+        elif self.armed and self.pending and self.selected in self.verified:
+            self.save_after_verify = False
+            self.save()
 
     def shutdown(self):
         if self.worker:

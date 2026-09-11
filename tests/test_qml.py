@@ -4,6 +4,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_QUICK_BACKEND", "software")
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 from PySide6.QtCore import QUrl, Qt, QPointF, QObject
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -35,6 +36,12 @@ class QmlTests(unittest.TestCase):
             QTest.qWait(20)
 
         click("recordButton")
+        self.assertFalse(controller.recording)
+        controller.app = Mock(applicationState=lambda: Qt.ApplicationActive)
+        controller.on_input({"candidate_assignment_hex": controller.value(0)})
+        self.assertTrue(controller.confirm)
+        controller.record()
+        QTest.qWait(20)
         self.assertTrue(controller.recording)
         QTest.keyClick(window, Qt.Key_P, Qt.ShiftModifier)
         self.assertEqual(controller.pending, "20021300")

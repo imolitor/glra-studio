@@ -339,8 +339,15 @@ class DeviceWorker(QThread):
                         else:
                             self.input.emit(event)
                     except Exception as exc:
+                        self.audit.record("input_disconnect", message=str(exc))
                         self.disconnect()
-                        self.fault.emit(str(exc))
+                        self.state.emit(
+                            {
+                                "connected": False,
+                                "reason": "Pad disconnected. Reconnect it to continue.",
+                                "recovery": self.pending.exists(),
+                            }
+                        )
                         break
         finally:
             self.disconnect()

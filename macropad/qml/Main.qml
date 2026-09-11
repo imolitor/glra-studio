@@ -44,7 +44,7 @@ ApplicationWindow {
             ColumnLayout {
                 spacing: 5
                 Text { text: "A little pad. Your shortcuts."; color: root.ink; font.pixelSize: 29; font.weight: Font.DemiBold; font.letterSpacing: -.8 }
-                Text { text: "Select a control, capture a shortcut, and make it yours."; color: root.muted; font.pixelSize: 14 }
+                Text { text: "Press a control on your pad, capture a shortcut, and make it yours."; color: root.muted; font.pixelSize: 14 }
             }
             Item { Layout.fillWidth: true }
             ColumnLayout {
@@ -62,7 +62,7 @@ ApplicationWindow {
                     RowLayout {
                         Text { text: "YOUR PAD"; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 1.6; color: root.muted }
                         Item { Layout.fillWidth: true }
-                        Text { text: root.data.connected ? "Click any key or dial action" : "Plug in your USB macropad"; color: root.muted; font.pixelSize: 11 }
+                        Text { text: root.data.connected ? "Press a key or operate a dial on the pad" : "Plug in your USB macropad"; color: root.muted; font.pixelSize: 11 }
                     }
                     Rectangle {
                         Layout.fillWidth: true; Layout.fillHeight: true; radius: 16; color: root.dark ? "#151e2c" : "#f2f5fa"; border.color: root.line
@@ -76,7 +76,7 @@ ApplicationWindow {
                                         required property var modelData
                                         entry: modelData; dark: root.dark; caption: modelData.number.toString().padStart(2,"0")
                                         Layout.fillWidth: true; Layout.preferredHeight: 79; Layout.minimumWidth: 68
-                                        enabled: !root.data.busy && !root.data.calibrating
+                                        enabled: modelData.selectable && !root.data.busy && !root.data.calibrating
                                         onSelected: function(slot) { studio.select(slot) }
                                     }
                                 }
@@ -98,10 +98,10 @@ ApplicationWindow {
                                         }
                                         RowLayout {
                                             Layout.fillWidth: true; spacing: 6
-                                            KeyTile { entry: modelData.left; caption: "↶ LEFT"; compact: true; dark: root.dark; Layout.fillWidth: true; Layout.preferredWidth: 90; enabled: !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
-                                            KeyTile { entry: modelData.right; caption: "↷ RIGHT"; compact: true; dark: root.dark; Layout.fillWidth: true; Layout.preferredWidth: 90; enabled: !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
+                                            KeyTile { entry: modelData.left; caption: "↶ LEFT"; compact: true; dark: root.dark; Layout.fillWidth: true; Layout.preferredWidth: 90; enabled: modelData.left.selectable && !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
+                                            KeyTile { entry: modelData.right; caption: "↷ RIGHT"; compact: true; dark: root.dark; Layout.fillWidth: true; Layout.preferredWidth: 90; enabled: modelData.right.selectable && !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
                                         }
-                                        KeyTile { entry: modelData.press; caption: "↓ PRESS"; compact: true; dark: root.dark; Layout.fillWidth: true; enabled: !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
+                                        KeyTile { entry: modelData.press; caption: "↓ PRESS"; compact: true; dark: root.dark; Layout.fillWidth: true; enabled: modelData.press.selectable && !root.data.busy && !root.data.calibrating; onSelected: function(slot) { studio.select(slot) } }
                                     }
                                 }
                             }
@@ -116,7 +116,7 @@ ApplicationWindow {
                     Rectangle { Layout.fillWidth: true; height: 1; color: root.line }
                     RowLayout {
                         Layout.fillWidth: true
-                        Repeater { model: ["01  Select a control", "02  Record a shortcut", "03  Save & verify"]
+                        Repeater { model: ["01  Press a pad control", "02  Record a shortcut", "03  Save & verify"]
                             Text { required property string modelData; text: modelData; color: root.muted; font.pixelSize: 11; Layout.fillWidth: true }
                         }
                     }
@@ -142,12 +142,11 @@ ApplicationWindow {
                             Text { text: root.data.recording ? "Normal keyboard · Esc cancels" : "One key, with optional modifiers"; color: root.muted; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
                         }
                     }
-                    StudioButton { objectName: "recordButton"; text: root.data.recording ? "Cancel recording" : root.data.pending ? "Record again" : "Record shortcut"; dark: root.dark; Layout.fillWidth: true; enabled: root.data.connected && !root.data.busy && !root.data.calibrating && !root.data.recovery; onClicked: root.data.recording ? studio.cancel() : studio.record() }
-                    Text { visible: !root.data.verified && root.data.connected; text: "This position is inferred. Verify it once so edits go to the right control."; color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                    StudioButton { visible: !root.data.verified && root.data.connected; text: "Verify this control"; dark: root.dark; Layout.fillWidth: true; enabled: !root.data.busy && !root.data.calibrating && !root.data.recovery; onClicked: verifyDialog.open() }
+                    StudioButton { objectName: "recordButton"; text: root.data.recording ? "Cancel recording" : root.data.pending ? "Record again" : "Record shortcut"; dark: root.dark; Layout.fillWidth: true; enabled: root.data.armed && root.data.connected && !root.data.busy && !root.data.calibrating && !root.data.recovery; onClicked: root.data.recording ? studio.cancel() : studio.record() }
+                    Text { visible: !root.data.verified && root.data.connected; text: "Saving includes a physical check for this position. Follow the prompt and operate the same control again."; color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     Text { visible: !root.data.inputAvailable && root.data.connected; text: "To detect presses, enable Input Monitoring for this app or your terminal, then restart it."; color: root.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     Item { Layout.fillHeight: true }
-                    StudioButton { objectName: "saveButton"; text: root.data.busy ? "Working…" : root.data.demo ? "Save in demo" : "Save to pad"; primary: true; dark: root.dark; Layout.fillWidth: true; enabled: root.data.canSave; onClicked: studio.save() }
+                    StudioButton { objectName: "saveButton"; text: root.data.busy ? "Working…" : root.data.demo ? "Save in demo" : root.data.verified ? "Save to pad" : "Verify & save to pad"; primary: true; dark: root.dark; Layout.fillWidth: true; enabled: root.data.canSave; onClicked: root.data.verified ? studio.save() : verifyDialog.open() }
                     Text { text: "Backed up first. Read back after every save."; color: root.muted; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
                     StudioButton { objectName: "undoButton"; text: "Undo last save"; dark: root.dark; Layout.fillWidth: true; enabled: root.data.canUndo && !root.data.busy && !root.data.calibrating && !root.data.recovery; onClicked: studio.undo() }
                 }
@@ -179,14 +178,14 @@ ApplicationWindow {
         }
     }
     Dialog {
-        id: verifyDialog; parent: Overlay.overlay; anchors.centerIn: parent; width: 430; modal: true; title: "Verify the physical control"
+        id: verifyDialog; parent: Overlay.overlay; anchors.centerIn: parent; width: 430; modal: true; title: "Verify and save"
         background: Rectangle { radius: 15; color: root.surface; border.color: root.line }
         contentItem: ColumnLayout {
             spacing: 18
-            Text { text: "The app will back up this assignment and temporarily give it an unused function key. Operate ONLY the selected control when prompted. Its original assignment will then be restored. If nothing arrives, the test restores it after 90 seconds. Keep the pad connected."; wrapMode: Text.WordWrap; Layout.fillWidth: true; color: root.ink; font.pixelSize: 13 }
+            Text { text: "The app will back up this assignment and temporarily give it an unused function key. Operate ONLY the selected control when prompted. Its original assignment will be restored, then your new shortcut will be saved automatically. If nothing arrives, the test restores it after 90 seconds. Keep the pad connected."; wrapMode: Text.WordWrap; Layout.fillWidth: true; color: root.ink; font.pixelSize: 13 }
             RowLayout { Layout.alignment: Qt.AlignRight
                 StudioButton { text: "Cancel"; dark: root.dark; onClicked: verifyDialog.close() }
-                StudioButton { text: "Start control test"; primary: true; dark: root.dark; onClicked: { verifyDialog.close(); studio.verifyControl() } }
+                StudioButton { text: "Verify & save"; primary: true; dark: root.dark; onClicked: { verifyDialog.close(); studio.save() } }
             }
         }
     }

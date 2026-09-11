@@ -83,10 +83,14 @@ The recorder captures a new shortcut only while its recording state is active.
 ## Change a key or dial action
 
 1. Connect the pad. Its current assignments appear automatically.
-2. Click a key/dial action, or press it on the pad while GLRA Studio is active.
-3. If marked as unverified, choose **Verify this control** and follow the prompt.
-4. Choose **Record shortcut**, then press the desired combination on your normal keyboard.
-5. Review the preview and select **Save to pad**.
+2. Press the key, press a dial, or turn it in the direction you want to program.
+   GLRA Studio must be the active app. Editing cannot start by clicking the diagram.
+3. If several controls have the same assignment, click the matching control in
+   the diagram. Only those candidates can be selected.
+4. Confirm **Record new**, then press the desired shortcut on your normal keyboard.
+5. Review the preview and choose **Save to pad**. For an inferred position, the
+   same button reads **Verify & save to pad**: confirm the check, then operate
+   only that physical control again. After verification, saving continues automatically.
 6. Test the physical control. **Undo last save** restores the previous assignment.
 
 For a capital P, record **Shift + P**. A letter alone represents its physical
