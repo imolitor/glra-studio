@@ -114,8 +114,9 @@ development. The remaining positions require this check.
 
 ## Pad lighting
 
-Open **Lighting** in the header, choose **Off**, **Steady**, **Breathing**, or
-**Rainbow wave**, then click **Apply**. **Undo** restores the previous lighting
+Open **Lighting** in the header and select a mode button: **Off**, **Steady**,
+**Breathing**, or **Rainbow wave**. In **Steady**, optional **Red**, **Green** and
+**Blue** buttons select a fixed color. Click **Apply** to save your selection. **Undo** restores the previous lighting
 configuration in the current connection session. Closing the popup without
 applying leaves the pad unchanged.
 
@@ -129,8 +130,8 @@ are unchanged. The firmware clears inactive parameters in Off mode; switching
 back on uses the tested default brightness and color settings. Undo restores
 the exact configuration from before the last change.
 
-Fixed red, green and blue in Steady mode have also passed hardware readback
-tests; color selection is not exposed in the popup yet. Additional effects,
+Fixed red, green and blue in Steady mode passed hardware readback tests and
+were visually confirmed on the pad. Additional effects,
 brightness controls, and persistence across a power cycle remain unvalidated.
 
 ## Compatibility

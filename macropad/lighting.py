@@ -34,6 +34,22 @@ def for_mode(current, mode):
     return bytes(value)
 
 
+def color_index(value):
+    validate(value)
+    if value[6:8] == bytes([1, 255]) and value[9:11] == bytes([255, 255]):
+        return {0: 0, 85: 1, 170: 2}.get(value[8], -1)
+    return -1
+
+
+def for_selection(current, mode, color=-1):
+    if color not in (-1, 0, 1, 2):
+        raise ValueError("Unknown fixed color.")
+    value = bytearray(for_mode(current, mode))
+    if mode == 1 and color >= 0:
+        value[6:11] = bytes([1, 255, (0, 85, 170)[color], 255, 255])
+    return bytes(value)
+
+
 def write(reader, identity, value, expected, directory):
     value = validate(value)
     status, tables = snapshot(reader)

@@ -100,4 +100,4 @@ Set payload byte 6 (single-color flag) to 1, byte 7 (custom-color index) to
 custom-color index of 0 to 255; send 255 to obtain exact readback.
 
 Every test preserved assignment and RGB memory and restored the original
-lighting afterward. The GUI does not expose color selection yet.
+lighting afterward. The Lighting popup exposes these three colors in Steady mode.

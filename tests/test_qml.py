@@ -28,8 +28,17 @@ class QmlTests(unittest.TestCase):
         self.assertIsInstance(window, QQuickWindow)
         QTest.qWait(100)
 
+        def visual_item(parent, name):
+            if parent.objectName() == name:
+                return parent
+            for child in parent.childItems():
+                found = visual_item(child, name)
+                if found is not None:
+                    return found
+            return None
+
         def click(name):
-            item = window.findChild(QObject, name)
+            item = visual_item(window.contentItem(), name)
             self.assertIsNotNone(item)
             point = item.mapToScene(QPointF(item.width() / 2, item.height() / 2)).toPoint()
             QTest.mouseClick(window, Qt.LeftButton, Qt.NoModifier, point)
@@ -61,16 +70,22 @@ class QmlTests(unittest.TestCase):
             self.assertTrue(window.grabWindow().save(str(Path(output) / "screenshot-dark.png")))
         click("lightingButton")
         self.assertTrue(controller.light_open)
-        mode = window.findChild(QObject, "lightingMode")
-        self.assertIsNotNone(mode)
-        mode.setProperty("currentIndex", 1)
+        click("lightingMode1")
+        click("lightingColor0")
         controller.changed.emit()
         QTest.qWait(30)
-        self.assertEqual(mode.property("currentIndex"), 1)
+        dialog = window.findChild(QObject, "lightingDialog")
+        self.assertEqual(dialog.property("draftMode"), 1)
+        self.assertEqual(dialog.property("draftColor"), 0)
+        self.assertEqual(controller.ui["lightMode"], 4)
+        self.assertEqual(controller.ui["lightColor"], -1)
         click("lightingApply")
         self.assertEqual(controller.ui["lightMode"], 1)
+        self.assertEqual(controller.ui["lightColor"], 0)
         click("lightingUndo")
         self.assertEqual(controller.ui["lightMode"], 4)
+        click("lightingMode1")
+        click("lightingColor2")
         QTest.qWait(220)
         if output:
             self.assertTrue(

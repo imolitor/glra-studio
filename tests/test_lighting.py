@@ -74,3 +74,15 @@ class LightingTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     lighting.write(r, {}, lighting.for_mode(r.light, 1), r.light.hex(), folder)
                 self.assertEqual(len(list(Path(folder).glob("*-lighting-error.json"))), 1)
+
+    def test_fixed_colors_match_hardware_verified_packets(self):
+        for index, hue in enumerate((0, 85, 170)):
+            value = lighting.for_selection(lighting.DEFAULT, 1, index)
+            self.assertEqual(value[2], 1)
+            self.assertEqual(value[6:11], bytes([1, 255, hue, 255, 255]))
+            self.assertEqual(lighting.color_index(value), index)
+        with self.assertRaises(ValueError):
+            lighting.for_selection(lighting.DEFAULT, 1, 7)
+
+    def test_color_choice_only_applies_in_steady(self):
+        self.assertEqual(lighting.for_selection(lighting.DEFAULT, 4, 0), lighting.DEFAULT)

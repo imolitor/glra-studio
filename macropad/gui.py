@@ -124,6 +124,9 @@ class Controller(QObject):
             "lightValue": self.light_value,
             "lightMode": bytes.fromhex(self.light_value)[2] if self.light_value else -1,
             "lightUndo": self.light_undo,
+            "lightColor": lighting.color_index(bytes.fromhex(self.light_value))
+            if self.light_value
+            else -1,
             "lightModes": [{"value": k, "name": v} for k, v in lighting.MODES.items()],
             "demo": self.demo,
             "connected": self.connected,
@@ -340,8 +343,8 @@ class Controller(QObject):
             self.light_open = False
             self.changed.emit()
 
-    @Slot(int)
-    def saveLighting(self, mode):
+    @Slot(int, int)
+    def saveLighting(self, mode, color=-1):
         if (
             not self.light_open
             or not self.light_value
@@ -354,11 +357,13 @@ class Controller(QObject):
             return
         if self.demo:
             self.demo_light_undo = self.light_value
-            self.light_value = lighting.for_mode(bytes.fromhex(self.light_value), mode).hex()
+            self.light_value = lighting.for_selection(
+                bytes.fromhex(self.light_value), mode, color
+            ).hex()
             self.light_undo = True
         else:
             self.busy = True
-            self.worker.submit("lighting_save", mode, self.light_value)
+            self.worker.submit("lighting_save", mode, color, self.light_value)
         self.changed.emit()
 
     @Slot()

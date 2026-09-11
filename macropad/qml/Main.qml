@@ -168,12 +168,15 @@ ApplicationWindow {
     }
     Dialog {
         id: lightingDialog; objectName: "lightingDialog"; parent: Overlay.overlay
-        anchors.centerIn: parent; width: 450; modal: true; title: "Pad lighting"
+        anchors.centerIn: parent; width: 520; modal: true; title: "Pad lighting"
         property string loadedValue: ""
+        property int draftMode: -1
+        property int draftColor: -1
         function syncMode() {
             if (loadedValue !== root.data.lightValue) {
                 loadedValue = root.data.lightValue
-                lightMode.currentIndex = lightMode.indexOfValue(root.data.lightMode)
+                draftMode = root.data.lightMode
+                draftColor = root.data.lightColor
             }
         }
         visible: root.data.lightOpen; closePolicy: Popup.NoAutoClose
@@ -183,13 +186,51 @@ ApplicationWindow {
             spacing: 18
             Text { text: "Choose how your pad lights up."; color: root.ink; font.pixelSize: 16; font.weight: Font.DemiBold }
             Text { text: "Changes apply only when you select Apply. Your current settings are backed up first."; color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-            ComboBox {
-                id: lightMode; objectName: "lightingMode"; Layout.fillWidth: true
-                model: [{value: 0, name: "Off"}, {value: 1, name: "Steady"}, {value: 2, name: "Breathing"}, {value: 4, name: "Rainbow wave"}]
-                textRole: "name"; valueRole: "value"
-                currentIndex: -1
-                enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
-                palette.text: root.ink; palette.buttonText: root.ink; palette.base: root.surface; palette.button: root.surface
+            GridLayout {
+                columns: 2; columnSpacing: 10; rowSpacing: 10; Layout.fillWidth: true
+                Repeater {
+                    model: [{value: 0, name: "Off"}, {value: 1, name: "Steady"}, {value: 2, name: "Breathing"}, {value: 4, name: "Rainbow wave"}]
+                    StudioButton {
+                        required property var modelData
+                        objectName: "lightingMode" + modelData.value
+                        text: modelData.name; dark: root.dark; primary: lightingDialog.draftMode === modelData.value
+                        Layout.fillWidth: true; implicitHeight: 52
+                        enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
+                        onClicked: lightingDialog.draftMode = modelData.value
+                    }
+                }
+            }
+            ColumnLayout {
+                visible: lightingDialog.draftMode === 1; Layout.fillWidth: true; spacing: 10
+                Text { text: "FIXED COLOR"; color: root.muted; font.pixelSize: 10; font.weight: Font.Bold; font.letterSpacing: 1 }
+                RowLayout {
+                    Layout.fillWidth: true; spacing: 10
+                    Repeater {
+                        model: [{name: "Red", color: "#ef5b58"}, {name: "Green", color: "#45c98a"}, {name: "Blue", color: "#568bf5"}]
+                        Button {
+                            id: colorButton
+                            required property var modelData
+                            required property int index
+                            objectName: "lightingColor" + index
+                            Layout.fillWidth: true; implicitHeight: 64; focusPolicy: Qt.NoFocus
+                            enabled: root.data.lightValue !== "" && !root.data.busy && root.data.writable
+                            Accessible.name: modelData.name
+                            onClicked: lightingDialog.draftColor = index
+                            background: Rectangle {
+                                radius: 10; color: root.surface
+                                border.width: lightingDialog.draftColor === colorButton.index ? 3 : 1
+                                border.color: lightingDialog.draftColor === colorButton.index ? colorButton.modelData.color : root.line
+                            }
+                            contentItem: Row {
+                                spacing: 8
+                                leftPadding: 14; topPadding: 17
+                                Rectangle { width: 18; height: 18; radius: 9; color: colorButton.modelData.color }
+                                Text { text: colorButton.modelData.name; color: root.ink; font.pixelSize: 13 }
+                            }
+                        }
+                    }
+                }
+                Text { visible: lightingDialog.draftColor < 0; text: "Select a color, or keep the pad’s existing colors."; color: root.muted; font.pixelSize: 11 }
             }
             Text { text: root.data.error || (!root.data.connected ? "Reconnect your pad, then reopen Lighting." : root.data.busy ? "Working…" : root.data.lightValue ? "Current mode: " + root.data.lightModes.filter(function(m) { return m.value === root.data.lightMode })[0].name : "Reading lighting settings…"); color: root.data.error ? "#ce5f59" : root.muted; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true; font.pixelSize: 12 }
             RowLayout {
@@ -197,7 +238,7 @@ ApplicationWindow {
                 StudioButton { objectName: "lightingUndo"; text: "Undo"; dark: root.dark; enabled: root.data.lightUndo && root.data.writable && !root.data.busy; onClicked: studio.undoLighting() }
                 Item { Layout.fillWidth: true }
                 StudioButton { text: "Close"; dark: root.dark; enabled: !root.data.busy; onClicked: studio.closeLighting() }
-                StudioButton { objectName: "lightingApply"; text: "Apply"; primary: true; dark: root.dark; enabled: root.data.lightValue !== "" && root.data.writable && !root.data.busy && lightMode.currentIndex >= 0 && lightMode.currentValue !== root.data.lightMode; onClicked: studio.saveLighting(lightMode.currentValue) }
+                StudioButton { objectName: "lightingApply"; text: "Apply"; primary: true; dark: root.dark; enabled: root.data.lightValue !== "" && root.data.writable && !root.data.busy && (lightingDialog.draftMode !== root.data.lightMode || (lightingDialog.draftMode === 1 && lightingDialog.draftColor >= 0 && lightingDialog.draftColor !== root.data.lightColor)); onClicked: studio.saveLighting(lightingDialog.draftMode, lightingDialog.draftColor) }
             }
         }
     }
