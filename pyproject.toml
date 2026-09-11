@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glra-studio"
+version = "0.2.0a1"
+description = "A local, open-source configurator for G-LRA k16_n3 macropads"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "GLRA Studio contributors"}]
+dependencies = ["hidapi==0.15.0", "PySide6==6.10.2"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Hardware :: Hardware Drivers",
+]
+
+[project.urls]
+Homepage = "https://github.com/imolitor/glra-studio"
+Issues = "https://github.com/imolitor/glra-studio/issues"
+
+[project.optional-dependencies]
+dev = ["ruff==0.12.12", "build==1.3.0"]
+
+[project.gui-scripts]
+glra-studio = "macropad.gui:main"
+
+[project.scripts]
+macropad = "macropad.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["macropad*"]
+
+[tool.setuptools.package-data]
+macropad = ["qml/*.qml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

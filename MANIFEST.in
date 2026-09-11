@@ -1,0 +1,6 @@
+include Launch.command
+include requirements.txt
+include CONTRIBUTING.md
+recursive-include docs *.md *.png
+recursive-include tests *.py
+recursive-include macropad/qml *.qml

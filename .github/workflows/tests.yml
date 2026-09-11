@@ -1,0 +1,30 @@
+name: Tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -e '.[dev]'
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: python -m unittest discover -s tests -v
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+      - run: python -m macropad.gui --demo --smoke-test
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-package
+          path: dist/*
