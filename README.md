@@ -7,6 +7,8 @@ three rotary encoders, and a web configurator that does not always work.
 Built with Python 3.13, PySide6 and Qt Quick. No account, cloud service, or
 manufacturer configuration software is required.
 
+![G-LRA k16_n3](docs/G-LRA-k16_n3.png)
+
 ![GLRA Studio in demo mode](docs/screenshot-light.png)
 
 ![Dark mode](docs/screenshot-dark.png)
