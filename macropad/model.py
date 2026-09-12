@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 """Device layout and lossless labels for four-byte assignments."""
 
 from .learn import usage_name

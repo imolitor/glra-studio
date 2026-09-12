@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 import tempfile
 import unittest
 from pathlib import Path

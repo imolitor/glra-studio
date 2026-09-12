@@ -17,3 +17,5 @@ assignments instead of replacing unknown values with zeroes.
 
 Hardware tests that change assignments should be explicit and reversible.
 The normal test suite and GUI demo must never access a physical HID device.
+
+Contributions to GLRA Studio are provided under GPL-3.0-only, the project license.

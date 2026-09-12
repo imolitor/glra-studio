@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 """Bounded, passive key learning from this macropad only; never writes HID."""
 
 import time

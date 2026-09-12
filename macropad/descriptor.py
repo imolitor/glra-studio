@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 """Parse HID short items and report lengths; never infer vendor semantics."""
 
 

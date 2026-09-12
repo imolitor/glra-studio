@@ -1,6 +1,6 @@
 # Third-party components
 
-The MIT license in this repository applies to GLRA Studio's own source code.
+The GNU General Public License version 3 (GPL-3.0-only) in this repository applies to GLRA Studio's own source code.
 Dependencies retain their own licenses. Their source and license notices are
 available from the projects below; no vendor JavaScript bundle is redistributed.
 

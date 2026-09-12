@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 import unittest
 from macropad.learn import decode, matches, BOOT_DESCRIPTOR, EXTENDED_DESCRIPTOR
 from macropad.descriptor import parse

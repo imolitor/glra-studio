@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 """Single-control transactions: fresh backup, bounded write, complete readback."""
 
 from datetime import datetime, timezone

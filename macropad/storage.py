@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 GLRA Studio contributors
+
 """Private, append-only audit records and checksummed diagnostic dumps."""
 
 import hashlib

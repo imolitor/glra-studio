@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "glra-studio"
-version = "0.2.0a1"
+version = "0.2.0a2"
 description = "A local, open-source configurator for G-LRA k16_n3 macropads"
 readme = "README.md"
 requires-python = ">=3.13"
-license = "MIT"
+license = "GPL-3.0-only"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 authors = [{name = "GLRA Studio contributors"}]
 dependencies = ["hidapi==0.15.0", "PySide6==6.10.2"]

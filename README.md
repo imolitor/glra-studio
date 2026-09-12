@@ -225,5 +225,16 @@ conservative implementation of the observed protocol.
 
 ## License
 
-Project source: [MIT](LICENSE). PySide6, Qt, HIDAPI and other dependencies keep
+Copyright (c) 2026 GLRA Studio contributors.
+
+GLRA Studio is licensed under the [GNU General Public License version 3](LICENSE)
+(`GPL-3.0-only`). You may use, modify and redistribute it under those terms,
+including commercially. Distribution of covered modified versions must preserve
+GPLv3 rights and meet its corresponding-source requirements.
+
+The software is provided without any warranty, including the implied warranties
+of merchantability or fitness for a particular purpose. See [LICENSE](LICENSE)
+for the full terms.
+
+PySide6, Qt, HIDAPI and other dependencies keep
 [their own licenses](THIRD_PARTY_NOTICES.md). This is an independent community project.
