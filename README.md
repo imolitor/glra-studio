@@ -13,10 +13,10 @@ manufacturer configuration software is required.
 
 ![Dark mode](docs/screenshot-dark.png)
 
-
-> **Early hardware-tested release.** Reading and individual assignments have
-> been tested on one G-LRA k16_n3 firmware variant. Other pads are detected as
-> candidates, not automatically enabled for writing. See [compatibility](#compatibility).
+> **Hardware-tested on the G-LRA k16_n3.** Programming has been confirmed for
+> all 16 keys and all nine actions of the three rotary encoders (press, clockwise,
+> and counterclockwise). Saved assignments remain on the pad after unplugging
+> and reconnecting it. See [compatibility](#compatibility) for supported firmware.
 
 ## What it does
 
@@ -27,12 +27,12 @@ manufacturer configuration software is required.
 - Saves the old assignments **before** writing, then verifies the changed data.
 - Can undo the last successful save in the current device session.
 - Changes pad lighting in a popup: Off, Steady, Breathing, or Rainbow wave.
-- Guides you through verifying physical positions that have not yet been tested.
+- Guides you through physical-control verification during the connection session.
 
 When several controls have the same assignment, their input reports are identical.
 The app asks you to select the physical control instead of pretending it can tell
 which one was used. Layout positions marked with a small dot require verification
-before saving. Current labels at those positions are inferred from the layout.
+before saving. This connection-session check identifies the control being edited.
 
 ## Get started
 
@@ -88,8 +88,8 @@ The recorder captures a new shortcut only while its recording state is active.
 3. If several controls have the same assignment, click the matching control in
    the diagram. Only those candidates can be selected.
 4. Confirm **Record new**, then press the desired shortcut on your normal keyboard.
-5. Review the preview and choose **Save to pad**. For an inferred position, the
-   same button reads **Verify & save to pad**: confirm the check, then operate
+5. Review the preview and choose **Save to pad**. When a connection-session check
+   is required, the button reads **Verify & save to pad**: confirm it, then operate
    only that physical control again. After verification, saving continues automatically.
 6. Test the physical control. **Undo last save** restores the previous assignment.
 
@@ -100,7 +100,7 @@ Escape cancels recording. Macro sequences, standalone modifier keys, and new
 media-key assignments are not supported by the recorder yet. Existing custom
 assignments are preserved and displayed as raw labels when not understood.
 
-### Verify an inferred position
+### Physical-control verification
 
 Verification is an explicit, temporary write test. The app backs up the target,
 assigns an unused function key, then asks you to operate **only the selected
@@ -111,8 +111,8 @@ also restores after 90 seconds if no matching event arrives.
 Keep the pad connected during the test. A recovery journal is saved before the
 temporary change; after a disconnect or interrupted test, reconnect and use
 **Restore test**. The app does not overwrite a value that changed externally.
-The top-left key and all three upper-dial actions were physically verified during
-development. The remaining positions require this check.
+All 16 keys and all nine dial actions have been physically tested. The app
+retains its connection-session verification step as part of the editing workflow.
 
 ## Pad lighting
 
@@ -137,15 +137,16 @@ the exact configuration from before the last change.
 
 Primary and mixed colors in Steady mode passed hardware readback tests and
 were visually confirmed on the pad. RGB values are converted to the pad’s
-8-bit HSV format, so the values displayed after saving can differ slightly. Additional effects,
-brightness controls, and persistence across a power cycle remain unvalidated.
+8-bit HSV format, so the values displayed after saving can differ slightly.
+The popup provides the four modes above and RGB color mixing in Steady mode;
+additional effects and separate brightness controls are not exposed.
 
 ## Compatibility
 
 | Hardware / state | Support |
 |---|---|
-| G-LRA k16_n3, USB `36ae:2475` | Detected; descriptors checked |
-| Protocol version 1, internal PID `246d`, firmware value 100 | Tested for individual assignments |
+| G-LRA k16_n3, USB `36ae:2475` | All 16 keys and all nine dial actions tested |
+| Protocol version 1, internal PID `246d`, firmware value 100 | Programming and assignment persistence confirmed |
 | First profile / first layer | Editing enabled on the tested firmware |
 | Other profiles | Displayed when active; editing disabled |
 | Other G-LRA / `0816` devices | Listed as candidates; not enabled for writing |
@@ -155,8 +156,10 @@ The GUI numbers profiles from 1; the protocol numbers them from 0. USB PID and
 internal firmware PID differ on the tested unit. Appearance or a Temu product
 name alone does not establish protocol compatibility.
 
-**Persistence after power removal has not yet been independently tested.**
-A successful save means the acknowledgement and immediate readback matched.
+**Saved assignments persist on the pad.** All keys and dial actions were tested,
+and the programmed assignments remained available after unplugging and
+reconnecting the USB cable. The app also checks the acknowledgement and
+reads the configuration back after each save.
 There are no reset, bootloader, firmware-update or bulk-write commands in the GUI.
 
 ## Backups and privacy
